@@ -6,13 +6,12 @@
     <title>SENTER - Flashlight Control</title>
     <link rel="stylesheet" href="style.css">
     <!-- ========================================== -->
-    <!-- MIDTRANS SNAP.JS -->
+    <!-- MIDTRANS SNAP.JS (Production) -->
     <!-- ========================================== -->
     <script 
-        src="https://app.sandbox.midtrans.com/snap/snap.js" 
-        data-client-key="SB-Mid-client-YOUR_CLIENT_KEY_HERE">
+        src="https://app.midtrans.com/snap/snap.js" 
+        data-client-key="Mid-client-LdAfC8R6AOwH2qOF">
     </script>
-    <!-- Ganti dengan client key dari dashboard Midtrans kamu -->
 </head>
 <body>
 
@@ -65,6 +64,16 @@
                     <span class="method-name">DANA</span>
                     <span class="method-check">✓</span>
                 </div>
+                <div class="payment-method" data-method="qris">
+                    <span class="method-icon">📱</span>
+                    <span class="method-name">QRIS</span>
+                    <span class="method-check">✓</span>
+                </div>
+                <div class="payment-method" data-method="bank_transfer">
+                    <span class="method-icon">🏦</span>
+                    <span class="method-name">Transfer Bank</span>
+                    <span class="method-check">✓</span>
+                </div>
             </div>
 
             <div class="selected-method" id="selectedMethod">
@@ -82,10 +91,15 @@
             </button>
 
             <p class="payment-note">
-                ⚡ Sandbox Mode - Gunakan kartu test: 4811 1111 1111 1114
+                ⚡ Test Mode - Gunakan kartu: 4811 1111 1111 1114
             </p>
         </div>
     </div>
+
+    <!-- ============================================ -->
+    <!-- CONTAINER UNTUK SNAP MIDTRANS -->
+    <!-- ============================================ -->
+    <div id="snap-container"></div>
 
     <!-- ============================================ -->
     <!-- POPUP LOADING -->
@@ -94,7 +108,7 @@
         <div class="loading-sheet">
             <div class="loading-spinner"></div>
             <h2 class="loading-title">Memproses...</h2>
-            <p class="loading-text">Menyiapkan pembayaran</p>
+            <p class="loading-text" id="loadingText">Menyiapkan pembayaran</p>
         </div>
     </div>
 
