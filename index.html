@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SENTER - Flashlight Control</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- ========================================== -->
+    <!-- MIDTRANS SNAP.JS -->
+    <!-- ========================================== -->
+    <script 
+        src="https://app.sandbox.midtrans.com/snap/snap.js" 
+        data-client-key="SB-Mid-client-YOUR_CLIENT_KEY_HERE">
+    </script>
+    <!-- Ganti dengan client key dari dashboard Midtrans kamu -->
+</head>
+<body>
+
+    <div class="container" id="app">
+        <!-- HEADER -->
+        <div class="header">
+            <h1 class="title">SENTER</h1>
+            <p class="subtitle">Flashlight Control</p>
+        </div>
+
+        <!-- STATUS -->
+        <div class="status-container">
+            <div class="status-text" id="statusText">OFF</div>
+            <div class="status-indicator" id="statusIndicator"></div>
+        </div>
+
+        <!-- TOMBOL -->
+        <div class="button-container">
+            <button class="btn btn-on" id="btnOn">ON</button>
+            <button class="btn btn-off active" id="btnOff">OFF</button>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer-text" id="footerText">⚪ Flashlight mati</div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- POPUP PEMBAYARAN DARI BAWAH -->
+    <!-- ============================================ -->
+    <div class="payment-overlay" id="paymentOverlay">
+        <div class="payment-sheet" id="paymentSheet">
+            <div class="payment-handle"></div>
+
+            <div class="payment-icon">💰</div>
+            <h2 class="payment-title">Bayar untuk Matikan!</h2>
+            <p class="payment-subtitle">Pilih metode pembayaran di bawah</p>
+
+            <div class="payment-price">Rp 1.000.000</div>
+            <p class="payment-currency">IDR</p>
+
+            <!-- METODE PEMBAYARAN -->
+            <div class="payment-methods">
+                <div class="payment-method" data-method="gopay">
+                    <span class="method-icon">🟢</span>
+                    <span class="method-name">GoPay</span>
+                    <span class="method-check">✓</span>
+                </div>
+                <div class="payment-method" data-method="dana">
+                    <span class="method-icon">🔵</span>
+                    <span class="method-name">DANA</span>
+                    <span class="method-check">✓</span>
+                </div>
+            </div>
+
+            <div class="selected-method" id="selectedMethod">
+                <span>⚠️ Pilih metode pembayaran</span>
+            </div>
+
+            <!-- Tombol Bayar -->
+            <button class="payment-btn pay-btn" id="payBtn" disabled>
+                🔒 Pilih Metode Pembayaran Dulu
+            </button>
+
+            <!-- Tombol Batal -->
+            <button class="payment-btn cancel-btn" id="cancelBtn">
+                ✕ Batal
+            </button>
+
+            <p class="payment-note">
+                ⚡ Sandbox Mode - Gunakan kartu test: 4811 1111 1111 1114
+            </p>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- POPUP LOADING -->
+    <!-- ============================================ -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-sheet">
+            <div class="loading-spinner"></div>
+            <h2 class="loading-title">Memproses...</h2>
+            <p class="loading-text">Menyiapkan pembayaran</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
