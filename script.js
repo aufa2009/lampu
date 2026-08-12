@@ -1,13 +1,13 @@
 // ============================================================
 //  SENTER - FRONTEND dengan Midtrans
-//  Integrasi pembayaran GoPay & DANA
+//  Integrasi pembayaran GoPay & DANA & QRIS & Bank Transfer
 // ============================================================
 
 // ============================================================
 //  KONFIGURASI
 // ============================================================
 
-const BACKEND_URL = 'http://localhost:3000'; // Ganti dengan URL backend kamu
+const BACKEND_URL = 'http://localhost:3000';
 
 // ============================================================
 //  ELEMEN DOM
@@ -31,6 +31,9 @@ const methodElements = document.querySelectorAll('.payment-method');
 const loadingOverlay = document.getElementById('loadingOverlay');
 const loadingText = document.getElementById('loadingText');
 
+// Snap container
+const snapContainer = document.getElementById('snap-container');
+
 // ============================================================
 //  VARIABEL STATE
 // ============================================================
@@ -45,6 +48,7 @@ let isPaymentOpen = false;
 let snapToken = null;
 let currentOrderId = null;
 let isProcessing = false;
+let isSnapOpen = false;
 
 // ============================================================
 //  CEK DUKUNGAN BROWSER (Flashlight)
@@ -310,7 +314,14 @@ async function createTransaction(method) {
         showLoading('Menyiapkan pembayaran...');
 
         const orderId = generateOrderId();
-        const grossAmount = 1000000; // Rp 1.000.000
+        const grossAmount = 1000000;
+
+        // Mapping method ke Midtrans
+        let paymentMethod = method;
+        if (method === 'gopay') paymentMethod = 'gopay';
+        else if (method === 'dana') paymentMethod = 'dana';
+        else if (method === 'qris') paymentMethod = 'qris';
+        else if (method === 'bank_transfer') paymentMethod = 'bank_transfer';
 
         const response = await fetch(`${BACKEND_URL}/api/create-transaction`, {
             method: 'POST',
@@ -322,7 +333,8 @@ async function createTransaction(method) {
                 grossAmount: grossAmount,
                 customerName: 'Pelanggan SENTER',
                 customerEmail: 'customer@example.com',
-                customerPhone: '08123456789'
+                customerPhone: '08123456789',
+                paymentMethod: paymentMethod
             })
         });
 
@@ -353,17 +365,21 @@ async function createTransaction(method) {
 // Buka Snap Payment
 function openSnapPayment(token) {
     try {
+        isSnapOpen = true;
+        snapContainer.classList.add('show');
+
         // Gunakan Snap Embed
         window.snap.embed(token, {
-            embedId: 'snap-container', // Container untuk Snap
+            embedId: 'snap-container',
             onSuccess: function(result) {
                 console.log('✅ Payment Success:', result);
+                isSnapOpen = false;
+                snapContainer.classList.remove('show');
                 // Flashlight MATI setelah pembayaran sukses!
                 turnFlashOff();
                 footerText.textContent = '✅ Pembayaran berhasil! Flashlight dimatikan.';
                 footerText.className = 'footer-text success';
                 hidePayment();
-                // Bisa juga tampilkan notifikasi sukses
                 alert('✅ Pembayaran berhasil! Flashlight telah dimatikan.');
             },
             onPending: function(result) {
@@ -373,14 +389,17 @@ function openSnapPayment(token) {
             },
             onError: function(result) {
                 console.log('❌ Payment Error:', result);
+                isSnapOpen = false;
+                snapContainer.classList.remove('show');
                 footerText.textContent = '❌ Pembayaran gagal: ' + (result.status_message || '');
                 footerText.className = 'footer-text error';
                 alert('❌ Pembayaran gagal! Silakan coba lagi.');
             },
             onClose: function() {
                 console.log('🔒 Snap closed by user');
-                // Jika user menutup Snap tanpa membayar, flashlight tetap menyala
-                // Tapi kita cek status transaksi dulu
+                isSnapOpen = false;
+                snapContainer.classList.remove('show');
+                // Cek status transaksi
                 checkTransactionStatus(currentOrderId);
             }
         });
@@ -390,13 +409,15 @@ function openSnapPayment(token) {
 
     } catch (error) {
         console.error('❌ Error opening Snap:', error);
+        isSnapOpen = false;
+        snapContainer.classList.remove('show');
         hideLoading();
         footerText.textContent = '❌ Gagal membuka pembayaran: ' + error.message;
         footerText.className = 'footer-text error';
     }
 }
 
-// Cek status transaksi (jika user menutup Snap tanpa bayar)
+// Cek status transaksi
 async function checkTransactionStatus(orderId) {
     try {
         const response = await fetch(`${BACKEND_URL}/api/check-status`, {
@@ -412,7 +433,6 @@ async function checkTransactionStatus(orderId) {
         if (data.success && data.status) {
             const status = data.status.transaction_status;
             if (status === 'settlement' || status === 'capture') {
-                // Flashlight mati!
                 turnFlashOff();
                 footerText.textContent = '✅ Pembayaran berhasil! Flashlight dimatikan.';
                 footerText.className = 'footer-text success';
@@ -430,15 +450,29 @@ async function checkTransactionStatus(orderId) {
 //  EVENT: PILIH METODE PEMBAYARAN
 // ============================================================
 
+const methodNames = {
+    'gopay': 'GoPay',
+    'dana': 'DANA',
+    'qris': 'QRIS',
+    'bank_transfer': 'Transfer Bank'
+};
+
+const methodIcons = {
+    'gopay': '🟢',
+    'dana': '🔵',
+    'qris': '📱',
+    'bank_transfer': '🏦'
+};
+
 methodElements.forEach(el => {
     el.addEventListener('click', function() {
         methodElements.forEach(m => m.classList.remove('active'));
         this.classList.add('active');
 
         selectedMethod = this.dataset.method;
-        selectedMethodName = this.dataset.method === 'gopay' ? 'GoPay' : 'DANA';
+        selectedMethodName = methodNames[selectedMethod] || selectedMethod;
 
-        const icon = selectedMethod === 'gopay' ? '🟢' : '🔵';
+        const icon = methodIcons[selectedMethod] || '💰';
         selectedMethodEl.innerHTML = `<span class="active">✅ ${icon} ${selectedMethodName}</span>`;
 
         payBtn.disabled = false;
@@ -459,14 +493,11 @@ payBtn.addEventListener('click', async function() {
     payBtn.disabled = true;
     payBtn.textContent = '⏳ Memproses...';
 
-    // Tutup payment overlay
     hidePayment();
 
-    // Buat transaksi di backend
     const token = await createTransaction(selectedMethod);
 
     if (token) {
-        // Buka Snap Payment
         openSnapPayment(token);
     }
 
@@ -519,6 +550,10 @@ document.addEventListener('keydown', function(e) {
     }
     if (e.key === 'Escape') {
         if (isPaymentOpen) hidePayment();
+        if (isSnapOpen) {
+            snapContainer.classList.remove('show');
+            isSnapOpen = false;
+        }
     }
 });
 
@@ -549,5 +584,5 @@ window.addEventListener('pagehide', function() {
 console.log('========================================');
 console.log('🔦 SENTER - Midtrans Integration');
 console.log('💰 OFF = Bayar Rp 1.000.000 via Midtrans');
-console.log('🟢 GoPay | 🔵 DANA');
+console.log('🟢 GoPay | 🔵 DANA | 📱 QRIS | 🏦 Bank Transfer');
 console.log('========================================');
