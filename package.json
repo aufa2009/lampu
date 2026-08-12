@@ -1,7 +1,7 @@
 {
-  "name": "senter-midtrans-backend",
+  "name": "senter-midtrans",
   "version": "1.0.0",
-  "description": "Backend untuk integrasi Midtrans SENTER",
+  "description": "SENTER - Flashlight Control dengan Midtrans",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -10,8 +10,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "midtrans-client": "^1.3.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1"
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
